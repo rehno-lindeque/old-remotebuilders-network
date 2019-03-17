@@ -54,6 +54,10 @@ pkgs.stdenv.mkDerivation
           echo "Unknown shell"
         fi
 
+        builder_ip_address(){
+          nixops info --plain 2>/dev/null | grep remotebuilder-aarch64 | grep -oE '((1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])\.){3}(1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])' | head -1 | tr -d '\n' 
+        }
+
         # Use localstate.nixops file in this directory
         export NIXOPS_STATE=$(pwd)/secrets/localstate.nixops
 
