@@ -61,6 +61,14 @@ pkgs.stdenv.mkDerivation
         # Use localstate.nixops file in this directory
         export NIXOPS_STATE=$(pwd)/secrets/localstate.nixops
 
+        # set default deployment name
+        export NIXOPS_DEPLOYMENT=remotebuilders
+
+        # load secrets into the shell environment
+        if [[ -f ./secrets/.my-envrc ]]; then
+          source ./secrets/.my-envrc
+        fi
+
         # Use a specific (unstable) channel for deploying nixpkgs
         # NIX_PATH=nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixos-unstable/nixpkgs:$NIX_PATH
         # NIX_PATH=nixpkgs=${pkgs.src}:$NIX_PATH
