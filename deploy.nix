@@ -4,6 +4,7 @@
 #
 
 { buildSlaves ? 1
+# , instanceSize ? "large"
 }:
 
 let
@@ -36,15 +37,20 @@ let
       targetEnv = "ec2";
       ec2 = {
         inherit region;
-        instanceType = "a1.medium";
+        # instanceType = "a1.${instanceSize}";
+        # instanceType = "a1.medium";
+        instanceType = "a1.4xlarge";
         associatePublicIpAddress = true;
         subnetId = resources.vpcSubnets."${networkName}-subnet";
         keyPair = resources.ec2KeyPairs.keypair.name;
         securityGroupIds = [ resources.ec2SecurityGroups."${networkName}-sg".name ];
-        spotInstancePrice = 1;
+        # spotInstancePrice = 2;
+        spotInstancePrice = 14;
         ebsInitialRootDiskSize = 30;
       };
     };
+    nix.buildCores = 16; #
+    # nix.maxJobs = "auto";
 
     # TEMP
     # nix.maxJobs = 1;

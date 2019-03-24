@@ -43,6 +43,16 @@ pkgs.stdenv.mkDerivation
         echo "Remote builders network provisioning environment"
         echo "------------------------------------------------"
         printf "${nc}"
+        echo "Shorthands:"
+        echo ""
+        echo "aarch64-ip"
+        echo "aarch64-up"
+        echo "aarch64-down"
+        echo "aarch64-ssh"
+        echo "aarch64-copy"
+        echo "aarch64-realise"
+        echo "aarch64-realise-bg"
+
         echo ""
 
         # Hook up direnv
@@ -54,8 +64,32 @@ pkgs.stdenv.mkDerivation
           echo "Unknown shell"
         fi
 
-        builder_ip_address(){
+        aarch64-ip(){
           nixops info --plain 2>/dev/null | grep remotebuilder-aarch64 | grep -oE '((1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])\.){3}(1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])' | head -1 | tr -d '\n' 
+        }
+
+        aarch64-up(){
+          nixops deploy --include remotebuilder-aarch64
+          # pull down host key 
+        }
+
+        aarch64-down(){
+          nixops destroy --include remotebuilder-aarch64
+        }
+        aarch64-ssh(){
+          nixops ssh remotebuilder-aarch64
+        }
+        aarch64-copy(){
+          nix copy --to "ssh://root@$(aarch64-ip)?ssh-key=/home/me/.ssh/id_accesspoint" $@
+        }
+        aarch64-realise(){
+          nix copy --to "ssh://root@$(aarch64-ip)?ssh-key=/home/me/.ssh/id_accesspoint" $@
+          nixops ssh remotebuilder-aarch64 "nix-store --realise $@"
+        }
+        aarch64-realise-bg(){
+          nix copy --to "ssh://root@$(aarch64-ip)?ssh-key=/home/me/.ssh/id_accesspoint" $@
+          nixops ssh remotebuilder-aarch64 "rm nohup.out ; nohup nix-store --realise $@ &"
+          nixops ssh remotebuilder-aarch64 "tail -f nohup.out"
         }
 
         # Use localstate.nixops file in this directory
