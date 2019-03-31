@@ -1,20 +1,23 @@
-# { pkgs ? import <nixpkgs> {}
-# { pkgs ? import ./nix { localSystem.system = "x86_64-linux"; crossSystem.system = "aarch64-linux"; }
-{ pkgs ? import ./nix { }
+{ pkgs ? import <nixpkgs> {}
+, aarch64Pkgs ? import ./nix {}
+, stateFilePath ? (builtins.getEnv "PWD" + "/secrets/localstate.nixops")
+, secretsEnvPath ? (builtins.getEnv "PWD" + "/secrets/.ec2-env")
 }:
 
+let
+  remoteBuildersNetwork = pkgs.callPackage ./. { inherit aarch64Pkgs stateFilePath secretsEnvPath; };
+in
 pkgs.stdenv.mkDerivation
   {
     name = "remotebuilders-network-provisioning-environment";
     version = "0.0.0";
     buildInputs =
-      # Nix shell dependencies
       with pkgs;
       [
         direnv
         git-crypt
-        # nix
         nixops
+        remoteBuildersNetwork
       ];
     shellHook =
       let
@@ -43,17 +46,7 @@ pkgs.stdenv.mkDerivation
         echo "Remote builders network provisioning environment"
         echo "------------------------------------------------"
         printf "${nc}"
-        echo "Shorthands:"
-        echo ""
-        echo "aarch64-ip"
-        echo "aarch64-up"
-        echo "aarch64-down"
-        echo "aarch64-ssh"
-        echo "aarch64-copy"
-        echo "aarch64-realise"
-        echo "aarch64-realise-bg"
-
-        echo ""
+        ${remoteBuildersNetwork}/bin/remotebuilders-help
 
         # Hook up direnv
         if [ -n "$BASH_VERSION" ]; then
@@ -64,49 +57,11 @@ pkgs.stdenv.mkDerivation
           echo "Unknown shell"
         fi
 
-        aarch64-ip(){
-          nixops info --plain 2>/dev/null | grep remotebuilder-aarch64 | grep -oE '((1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])\.){3}(1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])' | head -1 | tr -d '\n' 
-        }
-
-        aarch64-up(){
-          nixops deploy --include remotebuilder-aarch64
-          # pull down host key 
-        }
-
-        aarch64-down(){
-          nixops destroy --include remotebuilder-aarch64
-        }
-        aarch64-ssh(){
-          nixops ssh remotebuilder-aarch64
-        }
-        aarch64-copy(){
-          nix copy --to "ssh://root@$(aarch64-ip)?ssh-key=/home/me/.ssh/id_accesspoint" $@
-        }
-        aarch64-realise(){
-          nix copy --to "ssh://root@$(aarch64-ip)?ssh-key=/home/me/.ssh/id_accesspoint" $@
-          nixops ssh remotebuilder-aarch64 "nix-store --realise $@"
-        }
-        aarch64-realise-bg(){
-          nix copy --to "ssh://root@$(aarch64-ip)?ssh-key=/home/me/.ssh/id_accesspoint" $@
-          nixops ssh remotebuilder-aarch64 "rm nohup.out ; nohup nix-store --realise $@ &"
-          nixops ssh remotebuilder-aarch64 "tail -f nohup.out"
-        }
-
         # Use localstate.nixops file in this directory
-        export NIXOPS_STATE=$(pwd)/secrets/localstate.nixops
+        export NIXOPS_STATE=${stateFilePath}
 
         # set default deployment name
         export NIXOPS_DEPLOYMENT=remotebuilders
-
-        # load secrets into the shell environment
-        if [[ -f ./secrets/.my-envrc ]]; then
-          source ./secrets/.my-envrc
-        fi
-
-        # Use a specific (unstable) channel for deploying nixpkgs
-        # NIX_PATH=nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixos-unstable/nixpkgs:$NIX_PATH
-        # NIX_PATH=nixpkgs=${pkgs.src}:$NIX_PATH
-        # NIX_PATH=nixpkgs=${pkgs.path}
         '';
   }
 
