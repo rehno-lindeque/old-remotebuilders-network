@@ -39,7 +39,7 @@ pkgs.stdenv.mkDerivation
         light_grey="\\e[0;37m";
       in
         ''
-        echo ""
+        echo
         printf "${white}"
         echo "------------------------------------------------"
         echo "Remote builders network provisioning environment"
@@ -47,11 +47,7 @@ pkgs.stdenv.mkDerivation
         printf "${nc}"
         ${remoteBuildersNetwork}/bin/remotebuilders-help
 
-
-        # Use localstate.nixops file in this directory
         export NIXOPS_STATE=${stateFilePath}
-
-        # set default deployment name
         export NIXOPS_DEPLOYMENT=remotebuilders
         '';
   }

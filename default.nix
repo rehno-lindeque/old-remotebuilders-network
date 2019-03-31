@@ -10,7 +10,7 @@ let
     lib.mapAttrs writeShellScriptBin {
       remotebuilders-help = ''
         echo "USAGE:"
-        echo ""
+        echo
         echo "remotebuilders-help"
         echo "remotebuilders-ops"
         echo "aarch64-ip"
@@ -21,7 +21,6 @@ let
         echo "aarch64-realise"
         echo "aarch64-realise-bg"
         echo "aarch64-copy-id"
-        echo ""
         '';
       remotebuilders-ops = ''
         if [[ -f ${secretsEnvPath} ]]; then
@@ -65,10 +64,9 @@ let
       # TODO: export key using nixops export for $1 in the below script
       aarch64-copy-id = ''
         ssh-copy-id root@$(${self.aarch64-ip}/bin/aarch64-ip) -i ${sshKeyPath}.pub -o "IdentityFile $1" ''${@:2}
-      '';
+        '';
     });
 in
   linkFarm "remotebuilders-network"
     (lib.attrValues
       (lib.mapAttrs (name: path: { name = "bin/${name}"; path = "${path}/bin/${name}"; }) networkScripts))
-
