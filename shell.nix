@@ -14,7 +14,6 @@ pkgs.stdenv.mkDerivation
     buildInputs =
       with pkgs;
       [
-        direnv
         git-crypt
         nixops
         remoteBuildersNetwork
@@ -48,14 +47,6 @@ pkgs.stdenv.mkDerivation
         printf "${nc}"
         ${remoteBuildersNetwork}/bin/remotebuilders-help
 
-        # Hook up direnv
-        if [ -n "$BASH_VERSION" ]; then
-          eval "$(direnv hook bash)"
-        elif [ -n "$ZSH_VERSION" ]; then 
-          eval "$(direnv hook zsh)"
-        else
-          echo "Unknown shell"
-        fi
 
         # Use localstate.nixops file in this directory
         export NIXOPS_STATE=${stateFilePath}
