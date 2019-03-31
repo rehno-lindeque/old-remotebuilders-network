@@ -1,11 +1,9 @@
 { lib, ...}:
 {
   nixpkgs.localSystem = lib.systems.examples.aarch64-multiplatform;
+  nixpkgs.overlays = [ (import ./aarch64-overlay.nix) ];
 
-  # needed?
-  # nixpkgs.system = "aarch64-linux";
   deployment.ec2.ami = "ami-0d57f28ae76a680e3";
-
 
   fileSystems."/boot" = {
     device = "/dev/disk/by-label/ESP";

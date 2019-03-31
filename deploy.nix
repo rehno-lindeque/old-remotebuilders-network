@@ -71,7 +71,7 @@ in
     ];
   };
 
-  "remotebuilder-aarch64" = ec2BuildSlave ./system-aarch64.nix "remotebuilder-aarch64";
+  "remotebuilder-aarch64" = ec2BuildSlave ./aarch64-configuration.nix "remotebuilder-aarch64";
 }
 # // lib.genAttrs
 #     (map (n: "${networkName}-build-slave-${n}") (lib.range 1 buildSlaves))
